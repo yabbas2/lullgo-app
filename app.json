@@ -12,18 +12,19 @@
             "supportsTablet": true,
             "bundleIdentifier": "com.anonymous.babymonitor",
             "infoPlist": {
-                "NSBluetoothAlwaysUsageDescription": "TODO: set valid reason",
-                "NSBluetoothPeripheralUsageDescription": "TODO: set valid reason",
-                "NSLocationAlwaysAndWhenInUseUsageDescription": "TODO: set valid reason",
-                "NSLocationTemporaryUsageDescriptionDictionary": "TODO: set valid reason",
-                "NSLocationWhenInUseUsageDescription": "TODO: set valid reason"
+                "NSBluetoothAlwaysUsageDescription": "This app needs access to your Bluetooth to detect nearby Bluetooth devices.",
+                "NSBluetoothPeripheralUsageDescription": "This app needs access to your Bluetooth to detect nearby Bluetooth devices.",
+                "NSLocationAlwaysAndWhenInUseUsageDescription": "This app needs access to your location to detect the connected Wi-Fi network, and nearby Bluetooth devices.",
+                "NSLocationTemporaryUsageDescriptionDictionary": "This app needs access to your location to detect the connected Wi-Fi network, and nearby Bluetooth devices.",
+                "NSLocationWhenInUseUsageDescription": "This app needs access to your location to detect the connected Wi-Fi network, and nearby Bluetooth devices."
             }
         },
         "android": {
             "adaptiveIcon": {
                 "foregroundImage": "./assets/images/adaptive-icon.png",
                 "backgroundColor": "#ffffff"
-            }
+            },
+            "package": "com.anonymous.babymonitor"
         },
         "web": {
             "bundler": "metro",
@@ -48,6 +49,15 @@
                         "LocationAlways",
                         "LocationWhenInUse",
                         "Bluetooth"
+                    ]
+                }
+            ],
+            [
+                "expo-font",
+                {
+                    "fonts": [
+                        "./assets/fonts/SUSE-SemiBold.ttf",
+                        "./assets/fonts/RobotoFlex-Regular.ttf"
                     ]
                 }
             ]
