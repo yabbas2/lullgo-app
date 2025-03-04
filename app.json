@@ -1,0 +1,93 @@
+{
+    "expo": {
+        "name": "lullgo",
+        "slug": "lullgo",
+        "version": "1.0.0",
+        "orientation": "portrait",
+        "icon": "./assets/images/icon.png",
+        "scheme": "myapp",
+        "userInterfaceStyle": "automatic",
+        "newArchEnabled": true,
+        "ios": {
+            "supportsTablet": true,
+            "bundleIdentifier": "com.anonymous.lullgo",
+            "infoPlist": {
+                "NSBluetoothAlwaysUsageDescription": "This app needs access to your Bluetooth to detect nearby Bluetooth devices.",
+                "NSBluetoothPeripheralUsageDescription": "This app needs access to your Bluetooth to detect nearby Bluetooth devices.",
+                "NSLocationAlwaysAndWhenInUseUsageDescription": "This app needs access to your location to detect the connected Wi-Fi network, and nearby Bluetooth devices.",
+                "NSLocationTemporaryUsageDescriptionDictionary": "This app needs access to your location to detect the connected Wi-Fi network, and nearby Bluetooth devices.",
+                "NSLocationWhenInUseUsageDescription": "This app needs access to your location to detect the connected Wi-Fi network, and nearby Bluetooth devices.",
+                "NSAppTransportSecurity": {
+                    "NSAllowsLocalNetworking": true
+                },
+                "NSLocalNetworkUsageDescription": "This app needs to check device availability on your network."
+            },
+            "bitcode": false
+        },
+        "android": {
+            "adaptiveIcon": {
+                "foregroundImage": "./assets/images/adaptive-icon.png",
+                "backgroundColor": "#ffffff"
+            },
+            "permissions": [
+                "android.permission.ACCESS_NETWORK_STATE",
+                "android.permission.CAMERA",
+                "android.permission.INTERNET",
+                "android.permission.MODIFY_AUDIO_SETTINGS",
+                "android.permission.RECORD_AUDIO",
+                "android.permission.SYSTEM_ALERT_WINDOW",
+                "android.permission.WAKE_LOCK",
+                "android.permission.BLUETOOTH",
+                "android.permission.ACCESS_NETWORK_STATE",
+                "android.permission.CAMERA",
+                "android.permission.INTERNET",
+                "android.permission.MODIFY_AUDIO_SETTINGS",
+                "android.permission.RECORD_AUDIO",
+                "android.permission.SYSTEM_ALERT_WINDOW",
+                "android.permission.WAKE_LOCK",
+                "android.permission.BLUETOOTH"
+            ],
+            "package": "com.anonymous.lullgo"
+        },
+        "web": {
+            "bundler": "metro",
+            "output": "static",
+            "favicon": "./assets/images/favicon.png"
+        },
+        "plugins": [
+            "expo-router",
+            "@config-plugins/react-native-webrtc",
+            [
+                "expo-splash-screen",
+                {
+                    "image": "./assets/images/splash-icon.png",
+                    "imageWidth": 200,
+                    "resizeMode": "contain",
+                    "backgroundColor": "#ffffff"
+                }
+            ],
+            [
+                "react-native-permissions",
+                {
+                    "iosPermissions": [
+                        "LocationAlways",
+                        "LocationWhenInUse",
+                        "Bluetooth"
+                    ]
+                }
+            ],
+            [
+                "expo-font",
+                {
+                    "fonts": [
+                        "./assets/fonts/SUSE-SemiBold.ttf",
+                        "./assets/fonts/RobotoFlex-Regular.ttf"
+                    ]
+                }
+            ]
+        ],
+        "experiments": {
+            "typedRoutes": true
+        }
+    }
+}
