@@ -35,4 +35,13 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 
+# misc
 app-example
+ios/
+android/
+package-lock.json
+
+# security
+*.cer
+*.key
+*.crt

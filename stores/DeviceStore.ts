@@ -11,7 +11,6 @@ const zustandStorage = {
 };
 
 interface DeviceState {
-    deviceExist: boolean;
     deviceBleId: string | null;
     deviceHostname: string | null;
     setDeviceBleId: (id: string | null) => void;
@@ -22,21 +21,17 @@ interface DeviceState {
 export const useStore = create<DeviceState>()(
     persist(
         (set, get) => ({
-            deviceExist: false,
             deviceBleId: null,
             deviceHostname: '',
             setDeviceBleId: (id) => {
                 set({ deviceBleId: id });
-                set({ deviceExist: true });
             },
             setDeviceHostname: (name) => {
                 set({ deviceHostname: name });
-                set({ deviceExist: true });
             },
             clearDevice: () => {
                 set({ deviceBleId: null });
                 set({ deviceHostname: null });
-                set({ deviceExist: false });
             },
         }),
         {

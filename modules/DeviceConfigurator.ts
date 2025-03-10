@@ -88,20 +88,15 @@ export const scanForDeviceOnNet = async (cbkNetScanResult: cbkNetScanResultType)
     // TODO: find DNS first
     const { config } = RNFetchBlob;
     let scanOptions = {
-        url: 'https://rpi.local:8081',
         trusty: true,  // for self-signed certificates
         ciphers: ['ECDHE-RSA-AES128-GCM-SHA256'],  // accepted cipher list
         timeout: 5000,
         sslPinning: {
             certs: ["client"]
         },
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-        },
     };
     try {
-        const response = await config(scanOptions).fetch('GET', 'https://rpi.local:8081');
+        const response = await config(scanOptions).fetch('GET', 'https://rpi.local:8081', {'Content-Type': 'application/json'});
         console.debug('Response:', await response.json());
         cbkNetScanResult('rpi.local');
     } catch (error) {

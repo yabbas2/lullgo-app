@@ -12,7 +12,7 @@ import { useNavigation } from '@react-navigation/native';
 
 
 export default function main() {
-    const { deviceExist, deviceBleId, setDeviceBleId, deviceHostname, setDeviceHostname, clearDevice } = useStore();
+    const { deviceBleId, setDeviceBleId, deviceHostname, setDeviceHostname, clearDevice } = useStore();
     const [blScan, setBlScan] = useState<boolean>(false);
     const [netScan, setNetScan] = useState<boolean>(false);
     const [connect, setConnect] = useState<boolean>(false);
@@ -97,7 +97,7 @@ export default function main() {
         <SafeAreaView className='flex-1'>
             {!(blScan || netScan) ? (
                 <ScrollView>
-                    {deviceExist ? (
+                    {deviceBleId || deviceHostname ? (
                         <View className='flex flex-col mx-4 self-stretch justify-start items-start gap-2 bg-white border border-gray-200 p-5 rounded-lg shadow-md'>
                             <View className='flex flex-row self-stretch justify-between'>
                                 <View className='flex flex-row self-stretch items-center gap-2'>
