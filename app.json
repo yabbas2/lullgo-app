@@ -20,7 +20,9 @@
                 "NSAppTransportSecurity": {
                     "NSAllowsLocalNetworking": true
                 },
-                "NSLocalNetworkUsageDescription": "This app needs to check device availability on your network."
+                "NSLocalNetworkUsageDescription": "This app needs to check device availability on your network.",
+                "NSCameraUsageDescription": "This app needs access to your camera for video streaming.",
+                "NSMicrophoneUsageDescription": "This app needs access to your microphone for audio streaming."
             },
             "bitcode": false
         },
@@ -56,7 +58,13 @@
         },
         "plugins": [
             "expo-router",
-            "@config-plugins/react-native-webrtc",
+            [
+                "@config-plugins/react-native-webrtc",
+                {
+                    "cameraPermission": "Allow access to camera",
+                    "microphonePermission": "Allow access to microphone"
+                }
+            ],
             [
                 "expo-splash-screen",
                 {

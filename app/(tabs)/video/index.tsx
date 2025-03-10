@@ -1,104 +1,166 @@
-import React, { useEffect, useState, useRef, RefObject } from 'react';
-import { View, StyleSheet, Text } from 'react-native';
-//import { RTCView, RTCPeerConnection, mediaDevices, RTCSessionDescription, RTCIceCandidate } from 'react-native-webrtc';
+import { RTCView, RTCPeerConnection  } from 'react-native-webrtc';
+import { useEffect, useState, useRef } from 'react';
+import RNFetchBlob from 'rn-fetch-blob';
+import { TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, runOnJS, Easing, } from 'react-native-reanimated'
 
-type WebSocketMessage = {
-    type: 'answer' | 'candidate' | 'offer';
-    sdp?: string;
-    candidate?: RTCIceCandidate;
-    path?: string;
-};
+export default function WebRTCStream() {
+    const [stream, setStream] = useState(null);
+    const [isConnected, setIsConnected] = useState(false);
+    const [pc, setPc] = useState<RTCPeerConnection | null>(null);
+    const [isPaused, setIsPaused] = useState(false);
+    const [controlsVisible, setControlsVisible] = useState(false);
+    const opacity = useSharedValue(0);
+    const timeoutRef = useRef(null);
 
-export default function WebRTCStreamViewer() {
-    //const [streamURL, setStreamURL] = useState<string | null>(null);
-    //const pcRef: RefObject<RTCPeerConnection | null> = useRef(null);
-    //const wsRef: RefObject<WebSocket | null> = useRef(null);
-    //const mediaServerURL = 'ws://rpi.local:8889/ws'; // Replace with your Pi's IP
-    //
-    //useEffect(() => {
-    //    const setupWebRTC = async () => {
-    //        // 1. Create Peer Connection
-    //        pcRef.current = new RTCPeerConnection({
-    //            iceServers: [
-    //                { urls: 'stun:stun.l.google.com:19302' },
-    //            ],
-    //            iceTransportPolicy: 'relay' as RTCIceTransportPolicy,
-    //        });
-    //
-    //        // 2. Set up WebSocket connection to MediaMTX
-    //        wsRef.current = new WebSocket(mediaServerURL);
-    //
-    //        // 3. Add transceivers
-    //        pcRef.current.addTransceiver('video', { direction: 'recvonly' });
-    //        pcRef.current.addTransceiver('audio', { direction: 'recvonly' });
-    //
-    //        // 4. Handle incoming tracks
-    //        pcRef.current.ontrack = (event) => {
-    //            if (event.track.kind === 'video' && event.streams.length > 0) {
-    //                setStreamURL(event.streams[0].toURL());
-    //            }
-    //        };
-    //
-    //        // 5. Create and send offer
-    //        const offer = await pcRef.current.createOffer();
-    //        await pcRef.current.setLocalDescription(offer);
-    //
-    //        // 6. Send offer via WebSocket
-    //        wsRef.current.onopen = () => {
-    //            wsRef.current?.send(JSON.stringify({
-    //                type: 'offer',
-    //                sdp: pcRef.current?.localDescription?.sdp,
-    //                path: '/cam',
-    //            } as WebSocketMessage));
-    //        };
-    //
-    //        // 7. Handle WebSocket messages
-    //        wsRef.current.onmessage = async (event) => {
-    //            const message: WebSocketMessage = JSON.parse(event.data);
-    //
-    //            if (message.type === 'answer' && message.sdp && pcRef.current) {
-    //                await pcRef.current.setRemoteDescription(
-    //                    new RTCSessionDescription({ type: 'answer', sdp: message.sdp })
-    //                );
-    //            } else if (message.candidate && pcRef.current) {
-    //                await pcRef.current.addIceCandidate(
-    //                    new RTCIceCandidate(message.candidate)
-    //                );
-    //            }
-    //        };
-    //    };
-    //
-    //    setupWebRTC();
-    //
-    //    // Cleanup
-    //    return () => {
-    //        pcRef.current?.close();
-    //        wsRef.current?.close();
-    //    };
-    //}, []);
+    // Reanimated style for controls
+    const controlsStyle = useAnimatedStyle(() => ({
+        opacity: opacity.value,
+        transform: [{ translateY: withTiming(opacity.value * 0, { duration: 300 }) }],
+    }));
+
+    // Handle controls visibility with animation
+    const toggleControls = (visible: boolean, immediate = false) => {
+        if (visible) {
+            setControlsVisible(true);
+            opacity.value = withTiming(1, {
+                duration: immediate ? 0 : 300,
+                easing: Easing.out(Easing.quad),
+            });
+        } else {
+            opacity.value = withTiming(0, {
+                duration: 300,
+                easing: Easing.in(Easing.quad),
+            }, (finished) => {
+                    if (finished) runOnJS(setControlsVisible)(false);
+                });
+        }
+    };
+
+    // Handle video tap
+    const handleVideoTap = () => {
+        if (!controlsVisible) {
+            toggleControls(true);
+        }
+        resetAutoHideTimer();
+    };
+
+    // Auto-hide controls after 5 seconds
+    const resetAutoHideTimer = () => {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = setTimeout(() => {
+            toggleControls(false);
+        }, 5000);
+    };
+
+    const startStream = async () => {
+        const { config } = RNFetchBlob;
+        let options = {
+            trusty: true,  // for self-signed certificates
+            ciphers: ['ECDHE-RSA-AES128-GCM-SHA256'],  // accepted cipher list
+            timeout: 5000,
+            sslPinning: {
+                certs: ["client"]
+            },
+        };
+        try {
+            const pc = new RTCPeerConnection({
+                iceServers: [
+                    { urls: 'stun:stun.l.google.com:19302' }
+                ]
+            });
+
+            // Receive stream from server
+            pc.addEventListener("track", (event) => {
+                console.debug('ontrack', event);
+                setStream(event.streams[0]);
+                setIsConnected(true);
+            });
+
+            // create OFFER to server (mediaMTX)
+            const offer = await pc.createOffer({
+                offerToReceiveVideo: true,
+            });
+            await pc.setLocalDescription(offer);
+
+            const response = await config(options).fetch('POST', 'https://rpi.local:8889/cam/whep', {'content-type': 'application/sdp'}, offer.sdp);
+            const answer = await response.text();
+            await pc.setRemoteDescription({
+                type: 'answer',
+                sdp: answer
+            });
+
+            setPc(pc);
+            handleVideoTap();
+        } catch (error) {
+            console.debug('Error:', error);
+        }
+    };
+
+    const togglePauseStream = () => {
+        if (stream) {
+            stream.getTracks().forEach(track => {
+                track.enabled = !track.enabled;
+            });
+            setIsPaused(!isPaused);
+        }
+    };
+
+    const recordStream = () => {
+        console.debug('recordStream');
+    };
+
+    const stopStream = () => {
+        pc?.close();
+        setPc(null);
+        setStream(null);
+        setIsConnected(false);
+        setIsPaused(false);
+    };
+
+    useEffect(() => {
+        return () => {
+            pc?.close();
+            clearTimeout(timeoutRef.current);
+        };
+    }, []);
 
     return (
-        <View style={styles.container}>
-        </View>
+        <TouchableWithoutFeedback onPress={handleVideoTap}>
+            <View className='flex-1'>
+                {stream ? (
+                    <View className='h-full bg-black' >
+                        <RTCView
+                            streamURL={stream.toURL()}
+                            style={{ flex: 1 }}
+                            objectFit="cover"
+                        />
+                    </View>
+                ) : (
+                        <View className='flex flex-col justify-center items-center h-full bg-black' />
+                    )}
+                {!isConnected && (
+                    <View className='absolute inset-x-0 bottom-5 p-4 h-24 bg-transparent flex flex-row gap-10 justify-center items-center'>
+                        <TouchableOpacity onPress={startStream}>
+                            <Ionicons name='play' size={50} color="white" />
+                        </TouchableOpacity>
+                    </View>
+                )}
+                {(isConnected && controlsVisible) && (
+                    <Animated.View style={controlsStyle} className='absolute inset-x-0 bottom-5 p-4 h-24 bg-transparent flex flex-row gap-10 justify-center items-center'>
+                        <TouchableOpacity onPress={recordStream} onPressIn={resetAutoHideTimer}>
+                            <Ionicons name='recording' size={35} color="red" />
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={togglePauseStream} onPressIn={resetAutoHideTimer}>
+                            <Ionicons name={isPaused ? 'play' : 'pause'} size={50} color="white" />
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={stopStream} onPressIn={resetAutoHideTimer}>
+                            <Ionicons name='stop' size={35} color="white" />
+                        </TouchableOpacity>
+                    </Animated.View>
+                )}
+            </View>
+        </TouchableWithoutFeedback>
     );
-};
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: 'black',
-    },
-    video: {
-        flex: 1,
-    },
-    loading: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'black',
-    },
-    loadingText: {
-        color: 'white',
-        fontSize: 18,
-    },
-});
+}
