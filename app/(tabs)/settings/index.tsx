@@ -2,11 +2,11 @@ import React from 'react';
 import { ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TableView, NavigationRow } from 'react-native-ios-kit';
-import { useStore } from '@/stores/DeviceStore'
+import { useDeviceStore } from '@/stores/DeviceStore'
 import { router } from 'expo-router';
 
 export default function Settings() {
-    const { deviceBleId, deviceHostname } = useStore();
+    const { deviceBleId, deviceHostname } = useDeviceStore();
 
     return (
         <SafeAreaView className='flex-1 gap-2'>

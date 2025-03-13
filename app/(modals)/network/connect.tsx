@@ -1,21 +1,20 @@
 import { View, Text } from 'react-native'
-import React, { useState, useLayoutEffect } from 'react'
+import React, { useState } from 'react'
 import { useLocalSearchParams } from 'expo-router'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { router } from 'expo-router'
 import * as DeviceConfigurator from '@/modules/DeviceConfigurator';
-import { useNavigation } from '@react-navigation/native';
 import { Button, TextField, Spinner, Switch } from 'react-native-ios-kit'
-import { useStore } from '@/stores/DeviceStore';
+import { useDeviceStore } from '@/stores/DeviceStore';
+import { useNetConnectStore } from '@/stores/netConnectStore'
 
 
 export default function connect() {
     const params = useLocalSearchParams();
-    const [connect, setConnect] = useState<boolean>(false);
+    const { connect, setConnect } = useNetConnectStore();
     const [password, setPassword] = useState<string>('');
     const [showPassword, setShowPassword] = useState<boolean>(false);
-    const navigation = useNavigation();
-    const { deviceBleId } = useStore();
+    const { deviceBleId } = useDeviceStore();
 
     const ssid = params.ssid ? params.ssid as string : "";
 
@@ -25,7 +24,6 @@ export default function connect() {
         await DeviceConfigurator.connectDeviceToNet(deviceBleId!, ssid, password);
         setTimeout(() => {
             router.dismissTo('/(tabs)/settings/device');
-            setConnect(false);
         }, 500);
     }
 

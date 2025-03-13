@@ -11,13 +11,13 @@ type Network = {
 
 export default function network() {
     const params = useLocalSearchParams();
-    const networks: Network[] = params.networks ? JSON.parse(params.networks as string) : [ {ssid: "hamada", id: "0"}, {ssid: "yl3ab", id: "1"}, {ssid: "yksab", id: "2"}, {ssid: "yenot", id: "3"}, {ssid: "yo2a3", id: "4"} ]
+    const networks: Network[] = params.networks ? JSON.parse(params.networks as string) : []
 
     const handleCardPress = async (ssid: string) => {
         router.push({ pathname: '/(modals)/network/connect', params: { ssid: ssid } });
     }
 
-    const NetworkPressable = ({title}: {title: string}) => {
+    const NetworkPressable = ({ title }: { title: string }) => {
         return (
             <TouchableHighlight
                 onPress={() => { handleCardPress(title) }}
@@ -44,7 +44,7 @@ export default function network() {
                 </View>
                 <FlatList
                     data={networks}
-                    renderItem={({item}) => <NetworkPressable title={item.ssid} />}
+                    renderItem={({ item }) => <NetworkPressable title={item.ssid} />}
                     keyExtractor={item => item.id}
                 />
             </View>

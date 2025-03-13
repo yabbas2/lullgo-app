@@ -1,13 +1,15 @@
-import { RTCView, RTCPeerConnection  } from 'react-native-webrtc';
+import { RTCView, RTCPeerConnection } from 'react-native-webrtc';
 import { useEffect, useState, useRef } from 'react';
 import RNFetchBlob from 'rn-fetch-blob';
-import { TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import { TouchableOpacity, TouchableWithoutFeedback, View, ActivityIndicator } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, runOnJS, Easing, } from 'react-native-reanimated'
 
+type streamConnectType = 'notConnected' | 'connecting' | 'connected';
+
 export default function WebRTCStream() {
     const [stream, setStream] = useState(null);
-    const [isConnected, setIsConnected] = useState(false);
+    const [streamConnect, setStreamConnect] = useState<streamConnectType>('notConnected');
     const [pc, setPc] = useState<RTCPeerConnection | null>(null);
     const [isPaused, setIsPaused] = useState(false);
     const [controlsVisible, setControlsVisible] = useState(false);
@@ -33,8 +35,8 @@ export default function WebRTCStream() {
                 duration: 300,
                 easing: Easing.in(Easing.quad),
             }, (finished) => {
-                    if (finished) runOnJS(setControlsVisible)(false);
-                });
+                if (finished) runOnJS(setControlsVisible)(false);
+            });
         }
     };
 
@@ -65,6 +67,7 @@ export default function WebRTCStream() {
             },
         };
         try {
+            setStreamConnect('connecting');
             const pc = new RTCPeerConnection({
                 iceServers: [
                     { urls: 'stun:stun.l.google.com:19302' }
@@ -75,16 +78,17 @@ export default function WebRTCStream() {
             pc.addEventListener("track", (event) => {
                 console.debug('ontrack', event);
                 setStream(event.streams[0]);
-                setIsConnected(true);
+                setStreamConnect('connected');
             });
 
             // create OFFER to server (mediaMTX)
             const offer = await pc.createOffer({
                 offerToReceiveVideo: true,
+                offerToReceiveAudio: true,
             });
             await pc.setLocalDescription(offer);
 
-            const response = await config(options).fetch('POST', 'https://rpi.local:8889/cam/whep', {'content-type': 'application/sdp'}, offer.sdp);
+            const response = await config(options).fetch('POST', 'https://rpi.local:8889/feed/whep', { 'content-type': 'application/sdp' }, offer.sdp);
             const answer = await response.text();
             await pc.setRemoteDescription({
                 type: 'answer',
@@ -92,9 +96,9 @@ export default function WebRTCStream() {
             });
 
             setPc(pc);
-            handleVideoTap();
         } catch (error) {
             console.debug('Error:', error);
+            setStreamConnect('notConnected');
         }
     };
 
@@ -115,7 +119,7 @@ export default function WebRTCStream() {
         pc?.close();
         setPc(null);
         setStream(null);
-        setIsConnected(false);
+        setStreamConnect('notConnected');
         setIsPaused(false);
     };
 
@@ -138,16 +142,21 @@ export default function WebRTCStream() {
                         />
                     </View>
                 ) : (
-                        <View className='flex flex-col justify-center items-center h-full bg-black' />
-                    )}
-                {!isConnected && (
+                    <View className='flex flex-col justify-center items-center h-full bg-black' />
+                )}
+                {(streamConnect === 'notConnected') && (
                     <View className='absolute inset-x-0 bottom-5 p-4 h-24 bg-transparent flex flex-row gap-10 justify-center items-center'>
                         <TouchableOpacity onPress={startStream}>
                             <Ionicons name='play' size={50} color="white" />
                         </TouchableOpacity>
                     </View>
                 )}
-                {(isConnected && controlsVisible) && (
+                {(streamConnect === 'connecting') && (
+                    <View className='absolute inset-x-0 bottom-5 p-4 h-24 bg-transparent flex flex-row gap-10 justify-center items-center'>
+                        <ActivityIndicator color="white" size="large" />
+                    </View>
+                )}
+                {((streamConnect === 'connected') && controlsVisible) && (
                     <Animated.View style={controlsStyle} className='absolute inset-x-0 bottom-5 p-4 h-24 bg-transparent flex flex-row gap-10 justify-center items-center'>
                         <TouchableOpacity onPress={recordStream} onPressIn={resetAutoHideTimer}>
                             <Ionicons name='recording' size={35} color="red" />

@@ -2,7 +2,8 @@ import React, { useState, useLayoutEffect, useEffect } from 'react';
 import { useRouter } from 'expo-router';
 import * as DeviceConfigurator from '@/modules/DeviceConfigurator';
 import * as Permissions from '@/modules/Permissions';
-import { useStore } from '@/stores/DeviceStore';
+import { useDeviceStore } from '@/stores/DeviceStore';
+import { useNetConnectStore } from '@/stores/netConnectStore'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { View, Text, ScrollView, ActivityIndicator } from 'react-native';
 import { Button, Spinner } from 'react-native-ios-kit'
@@ -12,15 +13,16 @@ import { useNavigation } from '@react-navigation/native';
 
 
 export default function main() {
-    const { deviceBleId, setDeviceBleId, deviceHostname, setDeviceHostname, clearDevice } = useStore();
+    const { deviceBleId, setDeviceBleId, deviceHostname, setDeviceHostname, clearDevice } = useDeviceStore();
+    const { connect, setConnect } = useNetConnectStore();
     const [blScan, setBlScan] = useState<boolean>(false);
     const [netScan, setNetScan] = useState<boolean>(false);
-    const [connect, setConnect] = useState<boolean>(false);
     const router = useRouter();
     const navigation = useNavigation();
 
     const cbkBlScanResult = async (deviceBleId: string | null) => {
         setBlScan(false);
+        setConnect(false);
         setDeviceBleId(deviceBleId);
     }
 
@@ -129,26 +131,26 @@ export default function main() {
                                 <Button
                                     rounded
                                     inverted
-                                    onPress={() => { deviceHostname? disconnectDevice() : connectDevice() }}
+                                    onPress={() => { deviceHostname ? disconnectDevice() : connectDevice() }}
                                     style={{ width: '100%', height: 40 }}
                                     disabledStyle={{ width: '100%', height: 40 }}
                                     disabled={connect}
                                 >
-                                    {connect ? <Spinner theme={{ primaryColor: "white" }} /> : ( deviceHostname? "Disconnect" : "Connect")}
+                                    {connect ? <Spinner theme={{ primaryColor: "white" }} /> : (deviceHostname ? "Disconnect" : "Connect")}
                                 </Button>
                             </View>
                         </View>
                     ) : (
-                            <View className='flex flex-row justify-center'>
-                                <Text className='text-gray-500 text-lg text-center'>No devices are found.</Text>
-                            </View>
-                        )}
+                        <View className='flex flex-row justify-center'>
+                            <Text className='text-gray-500 text-lg text-center'>No devices are found.</Text>
+                        </View>
+                    )}
                 </ScrollView>
             ) : (
-                    <View className='flex flex-col justify-center items-center h-full'>
-                        <ActivityIndicator color='#6b7280' size='large' />
-                    </View>
-                )}
+                <View className='flex flex-col justify-center items-center h-full'>
+                    <ActivityIndicator color='#6b7280' size='large' />
+                </View>
+            )}
         </SafeAreaView>
     );
 };

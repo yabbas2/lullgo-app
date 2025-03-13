@@ -1,11 +1,11 @@
 import React, { useEffect } from 'react';
-import { useStore } from '@/stores/DeviceStore';
+import { useDeviceStore } from '@/stores/DeviceStore';
 import { router } from 'expo-router';
 import { View, ActivityIndicator } from 'react-native';
 
 
 export default function main() {
-    const { deviceBleId, deviceHostname } = useStore();
+    const { deviceBleId, deviceHostname } = useDeviceStore();
     useEffect(() => {
         setTimeout(() => {
             if (deviceBleId || deviceHostname) {

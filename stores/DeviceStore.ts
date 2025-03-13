@@ -18,7 +18,7 @@ interface DeviceState {
     clearDevice: () => void;
 }
 
-export const useStore = create<DeviceState>()(
+export const useDeviceStore = create<DeviceState>()(
     persist(
         (set, get) => ({
             deviceBleId: null,
